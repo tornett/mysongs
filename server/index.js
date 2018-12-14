@@ -16,34 +16,32 @@ const MYSONGS_DEFAULT_SONG_COUNT = parseInt(process.env.MYSONGS_DEFAULT_SONG_COU
 let songs = []
 
 // load the songs directory
-!(() => {
-  let songsFound = true
-  try {
-    songsFound = fs.lstatSync(MYSONGS_SONGS_DIR).isDirectory();
-  } catch (err) {
-    songsFound = false
-  }
-  if (songsFound) {
-    fs.readdir(MYSONGS_SONGS_DIR, (err, items) => {
-      for (let item of items) {
-        // break fields, begin chopping off the filename extension
-        const [artist, album, track, title] = item.split(/[.-]/)
-        songs.push({
-          artist: artist,
-          album: album,
-          track: track,
-          title: title,
-          url: `${MYSONGS_HOST_SCHEME}${MYSONGS_HOST_NAME}:${MYSONGS_HOST_PORT}/${item}`
-        })
+function getSongsAsync() {
+  return new Promise((resolve, reject) => {
+    fs.readdir(MYSONGS_SONGS_DIR, (err, filenames) => {
+      if (err) {
+        reject(err)
+      } else {
+        resolve(filenames)
       }
-      console.log(`${songs.length} songs loaded from directory "${MYSONGS_SONGS_DIR}"`)
     })
-  } else {
-    console.error(`"${MYSONGS_SONGS_DIR}" is not a readable directory, please see README.md`)
-    process.exit(1)
-  }
-})()
+  })
+}
 
+getSongsAsync().then((filenames) => {
+  for (let filename of filenames) {
+    // break fields, begin chopping off the filename extension
+    const [artist, album, track, title] = filename.split(/[.-]/)
+    songs.push({
+      artist: artist,
+      album: album,
+      track: track,
+      title: title,
+      url: `${MYSONGS_HOST_SCHEME}${MYSONGS_HOST_NAME}:${MYSONGS_HOST_PORT}/${filename}`
+    })
+  }
+  console.log(`${songs.length} songs loaded from directory "${MYSONGS_SONGS_DIR}"`)
+}).catch((error) => console.log(error))
 
 const app = express()
 
