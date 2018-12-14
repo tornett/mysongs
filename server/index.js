@@ -9,9 +9,7 @@ const MYSONGS_SONGS_DIR = process.env.MYSONGS_SONGS_DIR || 'songs'
 const MYSONGS_HOST_NAME = process.env.MYSONGS_HOST_NAME || 'localhost'
 const MYSONGS_HOST_SCHEME = process.env.MYSONGS_HOST_SCHEME || 'http://'
 const MYSONGS_HOST_PORT = process.env.MYSONGS_HOST_PORT || 3000
-const MYSONGS_DEFAULT_SONG_COUNT = process.env.MYSONGS_DEFAULT_SONG_COUNT || 20
-
-require('dotenv').config()
+const MYSONGS_DEFAULT_SONG_COUNT = parseInt(process.env.MYSONGS_DEFAULT_SONG_COUNT) || 20
 
 // for now loading song information entirely in memory,
 // future change would be utilizing a db such as mongodb
@@ -42,6 +40,7 @@ let songs = []
     })
   } else {
     console.error(`"${MYSONGS_SONGS_DIR}" is not a readable directory, please see README.md`)
+    process.exit(1)
   }
 })()
 
@@ -80,8 +79,8 @@ app.get('/v1/songs', (req, res) => {
   }
 
   // limit to maximum of 20 songs
-  if (end - begin > MYSONGS_DEFAULT_SONG_COUNT) {
-    end = begin + MYSONGS_DEFAULT_SONG_COUNT
+  if ((end - begin) > MYSONGS_DEFAULT_SONG_COUNT) {
+    end = begin + MYSONGS_DEFAULT_SONG_COUNT - 1
   }
 
   console.log(`request songs ${begin} to ${end}${reversed}`)
